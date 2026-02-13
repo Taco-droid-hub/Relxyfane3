@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relxyfane · Prompt Refiner</title>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+            color: #ffffff;
+            position: relative;
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #0a0a0a, #000000);
+            opacity: 0.95;
+            z-index: -1;
+        }
+
+        .app-container {
+            max-width: 1440px;
+            width: 100%;
+            background: #0a0a0a;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #333333;
+            border-radius: 48px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 1px solid #333;
+        }
+
+        .brand h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .badge {
+            background: #1a1a1a;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #cccccc;
+            border: 1px solid #444;
+            margin-left: 0.5rem;
+        }
+
+        /* Language switch dihapus, header hanya menampung logo & badge */
+        /* Tidak ada lagi .lang-switch */
+
+        /* Dual Panel */
+        .dual-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .panel {
+            background: #0e0e0e;
+            border-radius: 32px;
+            border: 1px solid #333333;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .panel:hover {
+            border-color: #ffffff;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-header {
+            padding: 1.5rem 1.8rem;
+            border-bottom: 1px solid #333333;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #ffffff;
+        }
+
+        .panel-header svg {
+            stroke: white;
+        }
+
+        .panel-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .hint {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #999999;
+            font-weight: 500;
+        }
+
+        .panel-content {
+            padding: 1.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #000000;
+            border: 1px solid #333333;
+            border-radius: 20px;
+            padding: 1.2rem;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            border-color: white;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #666666;
+        }
+
+        .result-text {
+            width: 100%;
+            min-height: 200px;
+            background: #000000;
+            border: 1px solid #333333;
+            border-radius: 20px;
+            padding: 1.2rem;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .placeholder {
+            color: #666666;
+        }
+
+        .action-row {
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .action-group {
+            margin-top: 1.2rem;
+            display: flex;
+            gap: 0.8rem;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.8rem 1.8rem;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary svg {
+            stroke: black;
+        }
+
+        .btn-primary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: #111111;
+            color: white;
+            border: 1px solid #333333;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-icon svg {
+            stroke: white;
+        }
+
+        .btn-icon:hover:not(:disabled) {
+            background: #1a1a1a;
+            border-color: white;
+            color: white;
+        }
+
+        .btn-icon:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            margin-top: 2rem;
+            background: #0e0e0e;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid #333;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        .tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            border: none;
+            color: #999999;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn svg {
+            stroke: #999999;
+        }
+
+        .tab-btn.active {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .tab-btn.active svg {
+            stroke: white;
+        }
+
+        .tab-content {
+            padding: 1.5rem 0.5rem;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Credit Card */
+        .credit-card {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: #0a0a0a;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid #333;
+        }
+
+        .credit-card svg {
+            stroke: white;
+        }
+
+        .credit-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            color: white;
+        }
+
+        .credit-card p {
+            color: #cccccc;
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+        }
+
+        .credit-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #1a1a1a;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .credit-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
+            border-top: 1px solid #333;
+            padding-top: 1.5rem;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .loading-spinner p {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .dual-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-container {
+                padding: 1.5rem;
+            }
+            
+            .credit-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Black & White Theme - Pure Monochrome */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        ::selection {
+            background: white;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    
+    <div class="app-container">
+        <!-- Header dengan Logo saja (tanpa language switch) -->
+        <header class="header">
+            <div class="logo">
+                <img src="https://image2url.com/r2/default/images/1770979859166-fcff3122-3e70-45bb-8d2a-324326d0c50a.jpg" alt="Relxyfane Logo" class="logo-img">
+                <div class="brand">
+                    <h1>Relxyfane</h1>
+                    <span class="badge">OpenRouter</span>
+                </div>
+            </div>
+            <!-- Language switch dihapus, header hanya berisi logo -->
+        </header>
+
+        <!-- Main Content - Dual Kotak -->
+        <div class="dual-panel">
+            <!-- Kotak 1: Input User -->
+            <div class="panel input-panel">
+                <div class="panel-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H9" stroke="white" stroke-linecap="round"/>
+                        <path d="M16 5H22" stroke="white" stroke-linecap="round"/>
+                        <path d="M19 2V8" stroke="white" stroke-linecap="round"/>
+                        <path d="M21 12L15 18" stroke="white" stroke-linecap="round"/>
+                        <path d="M15 12L21 18" stroke="white" stroke-linecap="round"/>
+                    </svg>
+                    <h3>Input Prompt</h3>
+                    <span class="hint">Tulis prompt yang ingin diperdetail</span>
+                </div>
+                <div class="panel-content">
+                    <textarea id="userPrompt" placeholder="Contoh: gambar kucing..."></textarea>
+                    <div class="action-row">
+                        <button id="generateBtn" class="btn-primary">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M2 12L22 12" stroke="white" stroke-linecap="round"/>
+                                <path d="M15 5L22 12L15 19" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Generate Detail
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kotak 2: Hasil Generate -->
+            <div class="panel result-panel">
+                <div class="panel-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 2V7" stroke="white" stroke-linecap="round"/>
+                        <path d="M12 17V22" stroke="white" stroke-linecap="round"/>
+                        <path d="M4 12H2" stroke="white" stroke-linecap="round"/>
+                        <path d="M22 12H20" stroke="white" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="4" stroke="white"/>
+                    </svg>
+                    <h3>Refined Prompt</h3>
+                    <span class="hint">AI telah memperdetail prompt-mu</span>
+                </div>
+                <div class="panel-content">
+                    <div id="resultArea" class="result-text">
+                        <span class="placeholder">Hasil refined prompt akan muncul di sini...</span>
+                    </div>
+                    <div class="action-group">
+                        <button id="copyBtn" class="btn-icon" disabled>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" stroke="white"/>
+                                <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="white"/>
+                            </svg>
+                            Salin
+                        </button>
+                        <button id="downloadBtn" class="btn-icon" disabled>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M12 3V16" stroke="white" stroke-linecap="round"/>
+                                <path d="M8 12L12 16L16 12" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M4 17V20H20V17" stroke="white" stroke-linecap="round"/>
+                            </svg>
+                            Download TXT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Credit - Hanya Credit -->
+        <div class="bottom-section">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="credit">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" stroke="white"/>
+                        <path d="M12 6V12L16 14" stroke="white"/>
+                    </svg>
+                    Credit
+                </button>
+            </div>
+            
+            <div class="tab-content">
+                <!-- Tab Credit -->
+                <div id="credit" class="tab-pane active">
+                    <div class="credit-card">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <circle cx="20" cy="20" r="18" stroke="white" stroke-width="2"/>
+                            <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                        <div>
+                            <h4>Powered by OpenRouter</h4>
+                            <p>Relxyfane menggunakan AI OpenRouter untuk memperdetail prompt tanpa mengubah intent asli. AI tidak menjawab pertanyaan, hanya memperjelas dan memperkaya detail.</p>
+                            <span class="credit-badge">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 8V12L16 14"/>
+                                </svg>
+                                API Key: Active
+                            </span>
+                            <span class="credit-badge" style="margin-left: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                Relxyfane
+                            </span>
+                        </div>
+                    </div>
+                    <div class="credit-footer">
+                        <p>© 2025 Relxyfane · Prompt Refinement AI</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="26" stroke="rgba(255,255,255,0.2)" stroke-width="4" fill="none"/>
+                <path d="M30 4 A26 26 0 0 1 56 30" stroke="white" stroke-width="4" fill="none" stroke-linecap="round">
+                    <animateTransform attributeName="transform" type="rotate" from="0 30 30" to="360 30 30" dur="1s" repeatCount="indefinite"/>
+                </path>
+            </svg>
+            <p>AI sedang memperdetail prompt...</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elemen yang diperlukan
+            const userPrompt = document.getElementById('userPrompt');
+            const generateBtn = document.getElementById('generateBtn');
+            const resultArea = document.getElementById('resultArea');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // State untuk menyimpan hasil terakhir
+            let lastResult = '';
+
+            // Fungsi untuk mengupdate result
+            function setResult(text) {
+                lastResult = text;
+                // Hapus placeholder span jika ada
+                const placeholder = resultArea.querySelector('.placeholder');
+                if (placeholder) {
+                    resultArea.innerHTML = text;
+                } else {
+                    resultArea.innerText = text;
+                }
+                
+                // Enable tombol
+                copyBtn.disabled = false;
+                downloadBtn.disabled = false;
+            }
+
+            // Fungsi generate prompt (simulasi)
+            function generateDetail(prompt) {
+                const lowercasePrompt = prompt.toLowerCase().trim();
+                
+                if (lowercasePrompt.includes('kucing')) {
+                    return "Seekor kucing Persia berbulu panjang berwarna putih bersih dengan mata biru yang tajam, duduk dengan anggun di atas bantal beludru merah di ruangan bergaya Victorian dengan hiasan emas. Pencahayaan lembut dari jendela besar menciptakan efek chiaroscuro pada bulunya. Latar belakang perpustakaan tua dengan buku-buku antik. Gaya lukisan realis klasik dengan detail tekstur bulu yang sangat halus, resolusi 8K, rasio aspek 16:9.";
+                } else if (lowercasePrompt.includes('pemandangan') || lowercasePrompt.includes('landscape')) {
+                    return "Pemandangan matahari terbenam yang dramatis di tepi pantai dengan gradasi warna dari oranye keemasan hingga ungu tua di langit. Ombak kecil memecah di bibir pantai dengan buih putih yang berkilau. Dua pohon kelapa melambai tertiup angin sore di sisi kiri, sementara burung camar terbang dalam formasi V di kejauhan. Pasir pantai berwarna putih dengan tekstur halus dan jejak kaki yang samar. Gaya fotografi National Geographic dengan komposisi rule of thirds, tone hangat, detail tajam, suasana damai dan romantis.";
+                } else {
+                    return `Detail tambahan untuk: "${prompt}"\n\nPerspektif dramatis low-angle, pencahayaan sinematik dengan kontras tinggi, palet warna monokrom dengan aksen merah, tekstur tajam dan detail makro, komposisi simetris dengan elemen leading lines, atmosfer mistis dengan efek volumetric fog, gaya digital painting 2.5D, resolusi ultra HD, depth of field yang sempit untuk fokus pada subjek utama.`;
+                }
+            }
+
+            // Event listener untuk generate button
+            generateBtn.addEventListener('click', function() {
+                const prompt = userPrompt.value.trim();
+                
+                if (prompt === '') {
+                    alert('Silakan masukkan prompt terlebih dahulu!');
+                    return;
+                }
+
+                // Tampilkan loading
+                loadingOverlay.classList.remove('hidden');
+                
+                // Disable tombol selama loading
+                generateBtn.disabled = true;
+                copyBtn.disabled = true;
+                downloadBtn.disabled = true;
+
+                // Simulasi proses (2 detik)
+                setTimeout(() => {
+                    const refinedPrompt = generateDetail(prompt);
+                    setResult(refinedPrompt);
+                    
+                    // Sembunyikan loading
+                    loadingOverlay.classList.add('hidden');
+                    generateBtn.disabled = false;
+                }, 2000);
+            });
+
+            // Event listener untuk copy button
+            copyBtn.addEventListener('click', function() {
+                if (lastResult) {
+                    navigator.clipboard.writeText(lastResult).then(() => {
+                        // Feedback sukses
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Tersalin!
+                        `;
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                        }, 1500);
+                    }).catch(() => {
+                        alert('Gagal menyalin teks');
+                    });
+                }
+            });
+
+            // Event listener untuk download button
+            downloadBtn.addEventListener('click', function() {
+                if (lastResult) {
+                    const blob = new Blob([lastResult], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `refined-prompt-${Date.now()}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }
+            });
+
+            // Optional: Enter shortcut
+            userPrompt.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    generateBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Eminem • Snap Player</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #0a0a0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .snap-container {
+            width: 340px;
+            height: 620px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 44px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            touch-action: pan-x;
+        }
+
+        .snap-track {
+            display: flex;
+            width: 200%;
+            height: 100%;
+            transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+            will-change: transform;
+        }
+
+        .snap-track.animate {
+            transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        .snap-track.no-animate {
+            transition: none;
+        }
+
+        .player-card {
+            width: 50%;
+            height: 100%;
+            background-color: #1a1a20;
+            padding: 28px 24px 36px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+            border-radius: 44px;
+        }
+
+        .speaker-grill {
+            width: 60px;
+            height: 4px;
+            background: #3a3a44;
+            border-radius: 20px;
+            margin: 0 auto 20px auto;
+        }
+
+        .album-art {
+            width: 240px;
+            height: 240px;
+            background: #ffffff;
+            border-radius: 24px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.6);
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+
+        .album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .info-row {
+            width: 240px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .track-title {
+            font-weight: 650;
+            font-size: 1.25rem;
+            color: white;
+        }
+
+        .artist-name {
+            font-size: 0.85rem;
+            color: #b0b0ba;
+            margin-bottom: 12px;
+            width: 240px;
+        }
+
+        .airplay-btn {
+            color: #999;
+            font-size: 1rem;
+        }
+
+        .progress-container {
+            width: 240px;
+            margin-bottom: 18px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: #3a3a44;
+            border-radius: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .progress-bar::-webkit-slider-runnable-track {
+            background: #3a3a44;
+            height: 5px;
+            border-radius: 10px;
+        }
+
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 0;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 220px;
+            margin-top: 6px;
+        }
+
+        .btn-control {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: transform 0.15s;
+        }
+
+        .btn-control:active {
+            transform: scale(0.8);
+        }
+
+        .btn-play {
+            font-size: 44px;
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .dot-indicator {
+            position: absolute;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #555;
+            transition: all 0.4s ease;
+        }
+
+        .dot.active {
+            background: #ffffff;
+            width: 24px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="snap-container" id="snapContainer">
+        <div class="snap-track animate" id="snapTrack">
+            <!-- Player 1: Without Me -->
+            <div class="player-card" data-index="0">
+                <div class="speaker-grill"></div>
+                <div class="album-art">
+                    <img src="https://cdn.phototourl.com/free/2026-06-26-c29be86d-c32c-4625-90cf-308f81f6d030.jpg" alt="Without Me">
+                </div>
+                <div class="info-row">
+                    <span class="track-title">Without Me</span>
+                    <div class="airplay-btn"><i class="fa-solid fa-tower-broadcast"></i></div>
+                </div>
+                <div class="artist-name">Eminem</div>
+                <audio class="audio-el" src="https://www.image2url.com/r2/default/audio/1782475532451-58e20ad9-59ef-464a-9d51-daa53833cef5.mp3"></audio>
+                <div class="progress-container">
+                    <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
+                    <div class="time-info">
+                        <span class="current-time">0:00</span>
+                        <span class="duration">-0:00</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn-control"><i class="fas fa-backward-step"></i></button>
+                    <button class="btn-control btn-play play-btn">
+                        <i class="fas fa-play play-icon"></i>
+                    </button>
+                    <button class="btn-control"><i class="fas fa-forward-step"></i></button>
+                </div>
+            </div>
+
+            <!-- Player 2: The Real Slim Shady (THUMBNAIL UPDATED) -->
+            <div class="player-card" data-index="1">
+                <div class="speaker-grill"></div>
+                <div class="album-art">
+                    <img src="https://melodic-maroon-j8s0zfx7.edgeone.dev/download%20(1).jpeg" alt="The Real Slim Shady">
+                </div>
+                <div class="info-row">
+                    <span class="track-title">The Real Slim Shady</span>
+                    <div class="airplay-btn"><i class="fa-solid fa-tower-broadcast"></i></div>
+                </div>
+                <div class="artist-name">Eminem</div>
+                <audio class="audio-el" src="https://quaint-violet-ww5nxn37.edgeone.dev/eminem_the-real-slim-shady.mp3"></audio>
+                <div class="progress-container">
+                    <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
+                    <div class="time-info">
+                        <span class="current-time">0:00</span>
+                        <span class="duration">-0:00</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn-control"><i class="fas fa-backward-step"></i></button>
+                    <button class="btn-control btn-play play-btn">
+                        <i class="fas fa-play play-icon"></i>
+                    </button>
+                    <button class="btn-control"><i class="fas fa-forward-step"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dot-indicator">
+            <div class="dot active" id="dot0"></div>
+            <div class="dot" id="dot1"></div>
+        </div>
+    </div>
+
+    <script>
+        const snapTrack = document.getElementById('snapTrack');
+        const snapContainer = document.getElementById('snapContainer');
+        const players = document.querySelectorAll('.player-card');
+        const dots = [document.getElementById('dot0'), document.getElementById('dot1')];
+
+        let currentIndex = 0;
+        let startX = 0;
+        let isDragging = false;
+        let startOffset = 0;
+
+        // ===== AUDIO SETUP =====
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return "0:00";
+            let min = Math.floor(seconds / 60);
+            let sec = Math.floor(seconds % 60);
+            if (sec < 10) sec = `0${sec}`;
+            return `${min}:${sec}`;
+        }
+
+        players.forEach(card => {
+            const audio = card.querySelector('.audio-el');
+            const playBtn = card.querySelector('.play-btn');
+            const playIcon = card.querySelector('.play-icon');
+            const progressBar = card.querySelector('.progress-bar');
+            const currentTimeEl = card.querySelector('.current-time');
+            const durationEl = card.querySelector('.duration');
+
+            playBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (audio.paused) {
+                    pauseAllExcept(card);
+                    audio.play();
+                    playIcon.classList.remove('fa-play');
+                    playIcon.classList.add('fa-pause');
+                } else {
+                    audio.pause();
+                    playIcon.classList.remove('fa-pause');
+                    playIcon.classList.add('fa-play');
+                }
+            });
+
+            audio.addEventListener('timeupdate', () => {
+                if (!isNaN(audio.duration)) {
+                    progressBar.value = (audio.currentTime / audio.duration) * 100;
+                    currentTimeEl.innerText = formatTime(audio.currentTime);
+                    durationEl.innerText = "-" + formatTime(audio.duration - audio.currentTime);
+                }
+            });
+
+            progressBar.addEventListener('input', (e) => {
+                e.stopPropagation();
+                audio.currentTime = (progressBar.value / 100) * audio.duration;
+            });
+
+            audio.addEventListener('loadedmetadata', () => {
+                if (!isNaN(audio.duration)) durationEl.innerText = "-" + formatTime(audio.duration);
+            });
+
+            audio.addEventListener('ended', () => {
+                playIcon.classList.remove('fa-pause');
+                playIcon.classList.add('fa-play');
+            });
+        });
+
+        function pauseAllExcept(activeCard) {
+            players.forEach(card => {
+                if (card !== activeCard) {
+                    const audio = card.querySelector('.audio-el');
+                    if (!audio.paused) {
+                        audio.pause();
+                        card.querySelector('.play-icon').classList.remove('fa-pause');
+                        card.querySelector('.play-icon').classList.add('fa-play');
+                    }
+                }
+            });
+        }
+
+        function updateUI(index) {
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+            snapTrack.classList.remove('no-animate');
+            snapTrack.classList.add('animate');
+            snapTrack.style.transform = `translateX(-${index * 50}%)`;
+        }
+
+        // ===== SNAP LOGIC =====
+        snapContainer.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startOffset = -currentIndex * snapContainer.offsetWidth;
+            snapTrack.classList.remove('animate');
+            snapTrack.classList.add('no-animate');
+            snapContainer.setPointerCapture(e.pointerId);
+        });
+
+        snapContainer.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const w = snapContainer.offsetWidth;
+            let offset = startOffset + dx;
+            offset = Math.max(-w, Math.min(0, offset));
+            snapTrack.style.transform = `translateX(${offset}px)`;
+        });
+
+        snapContainer.addEventListener('pointerup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            const dx = e.clientX - startX;
+            const w = snapContainer.offsetWidth;
+            const threshold = w * 0.2;
+
+            if (dx < -threshold && currentIndex < 1) {
+                currentIndex = 1;
+            } else if (dx > threshold && currentIndex > 0) {
+                currentIndex = 0;
+            }
+
+            updateUI(currentIndex);
+            snapContainer.releasePointerCapture(e.pointerId);
+        });
+    </script>
+</body>
+  </html>
